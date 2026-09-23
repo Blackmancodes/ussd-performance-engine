@@ -1,0 +1,19 @@
+name: ci-smoke
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      - name: Run Go tests
+        run: go test ./... -count=1
+      - name: Smoke run
+        run: go run ./cmd/engine -config config/example.yaml -mock -sessions 5 -worker-count 1

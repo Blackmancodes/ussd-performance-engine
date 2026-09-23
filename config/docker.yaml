@@ -1,0 +1,29 @@
+test_id: docker-api
+target:
+  sender_url: "http://api:8080/api/v1/receive"
+  api_key_header: "X-API-Key"
+  api_key: ""
+  dry_run: false
+scale:
+  total_requests_target: 1000000
+  concurrent_sessions_target: 10
+  worker_id: 0
+  worker_count: 2
+mno_pools:
+  MTN:
+    prefixes: ["0803", "0806", "0810"]
+    weight: 1.0
+journeys:
+  - name: "check_balance"
+    weight: 1.0
+    steps:
+      - ussd: "*737#"
+      - input: "1"
+      - input: "1"
+behavior:
+  abandonment_rate: 0.0
+  session_timeout_s: 30
+  mock_error_rate: 0.0
+abort_conditions:
+  error_rate_ceiling: 0.05
+seed: 42

@@ -1,0 +1,86 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: USSD Performance Alerts
+    folder: USSD Performance
+    interval: 10s
+    rules:
+      - uid: ussd-high-error-rate
+        title: USSD high error rate
+        condition: C
+        for: 2m
+        noDataState: NoData
+        execErrState: Error
+        annotations:
+          summary: USSD error rate is above 5%
+          description: The five-minute request error rate has exceeded the configured threshold.
+        labels:
+          severity: warning
+          service: ussd-engine
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              expr: sum(rate(ussd_requests_total{status="error"}[5m])) / clamp_min(sum(rate(ussd_requests_total[5m])), 1)
+              format: time_series
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [0.05]
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params: [A, 5m, now]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions
+      - uid: ussd-engine-down
+        title: USSD engine metrics unavailable
+        condition: C
+        for: 1m
+        noDataState: Alerting
+        execErrState: Error
+        annotations:
+          summary: Prometheus cannot scrape the USSD engine
+          description: The engine metrics endpoint has not reported as up for one minute.
+        labels:
+          severity: critical
+          service: ussd-engine
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 60
+              to: 0
+            model:
+              expr: up{job="ussd-engine"}
+              format: time_series
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator:
+                    params: [1]
+                    type: lt
+                  operator:
+                    type: and
+                  query:
+                    params: [A, 1m, now]
+                  reducer:
+                    params: []
+                    type: last
+                  type: query
+              refId: C
+              type: classic_conditions

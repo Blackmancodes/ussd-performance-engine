@@ -1,0 +1,11 @@
+{
+  "GeneratedAt": "2026-09-23T01:21:41Z",
+  "Summary": {
+    "TotalRequests": 45,
+    "CompletedSessions": 8,
+    "FailedSessions": 2,
+    "AverageLatencySeconds": 1.25
+  },
+  "Baseline": null,
+  "Delta": null
+}

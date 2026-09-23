@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: engine
+  namespace: ussd-performance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: engine
+  template:
+    metadata:
+      labels:
+        app: engine
+    spec:
+      containers:
+        - name: engine
+          image: performanceengine-engine:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - "/engine"
+            - "-role"
+            - "coordinator"
+            - "-config"
+            - "/config/example.yaml"
+            - "-mock"
+            - "-sessions"
+            - "100"
+            - "-worker-count"
+            - "1"
+            - "-metrics-addr"
+            - ":2112"
+          ports:
+            - containerPort: 2112
+              name: metrics
+          env:
+            - name: SENDER_API_KEY
+              value: "demo-key"
+          volumeMounts:
+            - name: engine-config
+              mountPath: /config
+      volumes:
+        - name: engine-config
+          configMap:
+            name: engine-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: engine
+  namespace: ussd-performance
+spec:
+  selector:
+    app: engine
+  ports:
+    - name: metrics
+      port: 2112
+      targetPort: 2112

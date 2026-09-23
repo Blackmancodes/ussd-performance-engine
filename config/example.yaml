@@ -1,0 +1,29 @@
+test_id: "local-stage-1"
+target:
+  sender_url: "http://127.0.0.1:8080/ussd"
+  api_key_header: "X-API-Key"
+  api_key: "${SENDER_API_KEY}"
+  dry_run: true
+scale:
+  total_requests_target: 100
+  concurrent_sessions_target: 10
+  worker_id: 0
+  worker_count: 1
+mno_pools:
+  MTN:
+    prefixes: ["0803", "0806", "0810"]
+    weight: 1.0
+journeys:
+  - name: "check_balance"
+    weight: 1.0
+    steps:
+      - ussd: "*737#"
+      - input: "1"
+      - input: "1"
+behavior:
+  abandonment_rate: 0.0
+  session_timeout_s: 30
+  mock_error_rate: 0.0
+abort_conditions:
+  error_rate_ceiling: 0.05
+seed: 42

@@ -1,0 +1,13 @@
+# HELP ussd_requests_total Total sender requests emitted by the engine.
+# TYPE ussd_requests_total counter
+ussd_requests_total{journey="check_balance",network="MTN",stage="begin",status="success"} 10
+ussd_requests_total{journey="check_balance",network="MTN",stage="continue",status="success"} 20
+ussd_requests_total{journey="check_balance",network="MTN",stage="end",status="complete"} 15
+# HELP ussd_sessions_total Total sessions by terminal state and journey.
+# TYPE ussd_sessions_total counter
+ussd_sessions_total{journey="check_balance",state="COMPLETED"} 8
+ussd_sessions_total{journey="check_balance",state="FAILED"} 2
+# HELP ussd_request_duration_seconds Sender request duration in seconds.
+# TYPE ussd_request_duration_seconds histogram
+ussd_request_duration_seconds_sum{journey="check_balance",network="MTN",stage="begin"} 12.5
+ussd_request_duration_seconds_count{journey="check_balance",network="MTN",stage="begin"} 10

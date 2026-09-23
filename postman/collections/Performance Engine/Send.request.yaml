@@ -1,0 +1,18 @@
+$kind: http-request
+method: POST
+url: '{{base_url}}/api/v1/send'
+order: 3000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "sessionId": "postman-demo-1",
+      "msisdn": "2348031000001",
+      "network": "MTN",
+      "ussdString": "*737#",
+      "input": "",
+      "stage": "begin"
+    }

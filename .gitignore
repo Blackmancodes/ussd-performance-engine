@@ -1,0 +1,21 @@
+# Build and runtime output
+/bin/
+/dist/
+/tmp/
+runs/*.log
+runs/*.exit
+
+# Go tooling
+*.test
+*.out
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
