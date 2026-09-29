@@ -1,17 +1,20 @@
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
 
 
-api_key = os.environ.get("POSTMAN_API_KEY", "")
-collection_id = os.environ.get("POSTMAN_COLLECTION_ID", "")
+api_key = os.environ.get("POSTMAN_API_KEY", "").strip()
+collection_id = os.environ.get("POSTMAN_COLLECTION_ID", "").strip()
 if not api_key and not collection_id:
     print("Postman sync skipped: set POSTMAN_API_KEY and POSTMAN_COLLECTION_ID in repository secrets.")
     sys.exit(0)
 if not api_key or not collection_id:
     sys.exit("Both POSTMAN_API_KEY and POSTMAN_COLLECTION_ID must be set.")
+if not re.fullmatch(r"[A-Za-z0-9_-]+", collection_id):
+    sys.exit("POSTMAN_COLLECTION_ID contains invalid characters; enter only the Postman collection ID, without quotes or backticks.")
 
 collection_path = Path("postman/ci/performance-engine.postman_collection.json")
 with collection_path.open(encoding="utf-8") as collection_file:
@@ -27,6 +30,7 @@ command = [
     "30",
     "--request",
     "PUT",
+    "--url",
     f"https://api.postman.com/collections/{collection_id}",
     "--header",
     f"X-API-Key: {api_key}",
