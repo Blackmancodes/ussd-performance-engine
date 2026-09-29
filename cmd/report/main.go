@@ -27,6 +27,7 @@ func main() {
 	output := flag.String("output", "", "Optional path to write the summary report (default: stdout)")
 	outputFormat := flag.String("format", "json", "Output format: json, html, csv")
 	flag.Parse()
+	_ = outputDir
 
 	if *metricsAlias != "" {
 		*metricsFile = *metricsAlias
@@ -61,11 +62,51 @@ func main() {
 				MaxLatencyDeltaSec: *thresholdLatency,
 				MinCompletedDelta:  *thresholdCompleted,
 			})
+			if mkdirErr := os.MkdirAll(*outputDir, 0o755); mkdirErr != nil {
+				fatalf("create output dir: %v", mkdirErr)
+			}
+			comparisonData, marshalErr := report.NewReport(current, &baseline).JSON()
+			if marshalErr != nil {
+				fatalf("marshal comparison report: %v", marshalErr)
+			}
+			if writeErr := os.WriteFile(filepath.Join(*outputDir, "comparison.json"), comparisonData, 0o644); writeErr != nil {
+				fatalf("write comparison report: %v", writeErr)
+			}
+			if err := os.MkdirAll(*outputDir, 0o755); err != nil {
+				fatalf("create output dir: %v", err)
+			}
+			comparisonData, err := report.NewReport(current, &baseline).JSON()
+			if err != nil {
+				fatalf("marshal comparison report: %v", err)
+			}
+			if err := os.WriteFile(filepath.Join(*outputDir, "comparison.json"), comparisonData, 0o644); err != nil {
+				fatalf("write comparison report: %v", err)
+			}
 			fmt.Printf("within_thresholds=%v\n", comparison.WithinThresholds)
 			fmt.Printf("request_delta=%d completed_delta=%d failed_delta=%d latency_delta=%0.6f\n", comparison.Delta.RequestDelta, comparison.Delta.CompletedDelta, comparison.Delta.FailedDelta, comparison.Delta.LatencyDeltaSec)
 		} else if saveErr := store.Save(*baselineName, current); saveErr != nil {
 			fatalf("save baseline: %v", saveErr)
 		} else {
+			if mkdirErr := os.MkdirAll(*outputDir, 0o755); mkdirErr != nil {
+				fatalf("create output dir: %v", mkdirErr)
+			}
+			baselineData, marshalErr := report.NewReport(current, nil).JSON()
+			if marshalErr != nil {
+				fatalf("marshal baseline report: %v", marshalErr)
+			}
+			if writeErr := os.WriteFile(filepath.Join(*outputDir, "baseline.json"), baselineData, 0o644); writeErr != nil {
+				fatalf("write baseline report: %v", writeErr)
+			}
+			if err := os.MkdirAll(*outputDir, 0o755); err != nil {
+				fatalf("create output dir: %v", err)
+			}
+			baselineData, err := report.NewReport(current, nil).JSON()
+			if err != nil {
+				fatalf("marshal baseline report: %v", err)
+			}
+			if err := os.WriteFile(filepath.Join(*outputDir, "baseline.json"), baselineData, 0o644); err != nil {
+				fatalf("write baseline report: %v", err)
+			}
 			fmt.Printf("baseline_saved=%s\n", *baselineName)
 		}
 	}
