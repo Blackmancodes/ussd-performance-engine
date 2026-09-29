@@ -1,0 +1,169 @@
+openapi: 3.1.0
+info:
+  title: USSD Performance Engine API
+  version: 1.0.0
+  description: HTTP API for sending USSD requests, receiving simulated USSD requests, and checking service metrics.
+servers:
+  - url: http://localhost:8080
+    description: Local API
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      summary: Check API availability
+      responses:
+        '200':
+          description: Service is available
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status:
+                    type: string
+                    const: ok
+  /api/v1/send:
+    post:
+      operationId: sendUSSDRequest
+      summary: Forward a USSD request to the configured receiver
+      security:
+        - ApiKeyAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/USSDRequest'
+            example:
+              sessionId: postman-demo-1
+              msisdn: '2348031000001'
+              network: MTN
+              ussdString: '*737#'
+              input: ''
+              stage: begin
+      responses:
+        '200':
+          description: Receiver response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/USSDResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '502':
+          description: Configured receiver returned an error or invalid response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Sender is not configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/receive:
+    post:
+      operationId: receiveUSSDRequest
+      summary: Return the local simulated USSD receiver response
+      security:
+        - ApiKeyAuth: []
+        - {}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/USSDRequest'
+                - type: object
+                  required: [sessionId]
+            example:
+              sessionId: postman-demo-1
+              msisdn: '2348031000001'
+              network: MTN
+              ussdString: '*737#'
+              input: ''
+              stage: begin
+      responses:
+        '200':
+          description: Terminal simulated response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/USSDResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /metrics:
+    get:
+      operationId: getPrometheusMetrics
+      summary: Read API Prometheus metrics
+      responses:
+        '200':
+          description: Prometheus text exposition
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Metrics are served by the API process when configured
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    USSDRequest:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        msisdn:
+          type: string
+        network:
+          type: string
+        ussdString:
+          type: string
+        input:
+          type: string
+        stage:
+          type: string
+      additionalProperties: false
+    USSDResponse:
+      type: object
+      required: [sessionId, response, continue]
+      properties:
+        sessionId:
+          type: string
+        response:
+          type: string
+        continue:
+          type: boolean
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    
+  responses:
+    BadRequest:
+      description: Request body is invalid JSON or missing a required field
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: X-API-Key is missing or invalid when API-key authentication is enabled
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
