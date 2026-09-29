@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "USSD Performance Engine API CI",
+    "description": "CI checks for the USSD Performance Engine API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8080" }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": { "method": "GET", "url": "{{base_url}}/healthz" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('health check succeeds', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().status).to.eql('ok'); });"
+      ] } }]
+    },
+    {
+      "name": "Receive valid request",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"sessionId\":\"ci-session\",\"msisdn\":\"2348031000001\",\"network\":\"MTN\",\"ussdString\":\"*737#\",\"input\":\"\",\"stage\":\"begin\"}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/v1/receive"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('receiver returns terminal response', function () { pm.response.to.have.status(200); const body = pm.response.json(); pm.expect(body.sessionId).to.eql('ci-session'); pm.expect(body.continue).to.eql(false); });"
+      ] } }]
+    },
+    {
+      "name": "Receive rejects missing sessionId",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}", "options": { "raw": { "language": "json" } } }, "url": "{{base_url}}/api/v1/receive" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('missing sessionId is rejected', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error).to.include('sessionId'); });"
+      ] } }]
+    },
+    {
+      "name": "Send valid request",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": { "mode": "raw", "raw": "{\"sessionId\":\"ci-session\",\"msisdn\":\"2348031000001\",\"network\":\"MTN\",\"ussdString\":\"*737#\",\"input\":\"\",\"stage\":\"begin\"}", "options": { "raw": { "language": "json" } } },
+        "url": "{{base_url}}/api/v1/send"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('sender forwards request', function () { pm.response.to.have.status(200); pm.expect(pm.response.json().sessionId).to.eql('ci-session'); });"
+      ] } }]
+    },
+    {
+      "name": "Send rejects invalid JSON",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "not-json" }, "url": "{{base_url}}/api/v1/send" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('invalid JSON is rejected', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error.toLowerCase()).to.include('invalid'); });"
+      ] } }]
+    }
+  ]
+}
+
