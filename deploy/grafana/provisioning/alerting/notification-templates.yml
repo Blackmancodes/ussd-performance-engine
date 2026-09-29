@@ -1,0 +1,26 @@
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: ussd-email-template
+    template: |
+      {{ define "ussd.alert.subject" }}[USSD Performance] {{ .Status | toUpper }}: {{ .CommonLabels.alertname }}{{ end }}
+      {{ define "ussd.alert.message" }}
+      USSD Performance Alert
+
+      Status: {{ .Status | toUpper }}
+      Alert: {{ .CommonLabels.alertname }}
+      Severity: {{ .CommonLabels.severity }}
+      Service: {{ .CommonLabels.service }}
+
+      Summary:
+      {{ .CommonAnnotations.summary }}
+
+      Details:
+      {{ .CommonAnnotations.description }}
+
+      Started: {{ (index .Alerts 0).StartsAt }}
+      {{ if eq .Status "resolved" }}Resolved: {{ (index .Alerts 0).EndsAt }}{{ end }}
+
+      Open Grafana: http://localhost:3000
+      {{ end }}

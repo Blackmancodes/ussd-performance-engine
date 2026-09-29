@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"performance-engine/internal/api"
 	"performance-engine/internal/engine"
 )
@@ -15,10 +16,15 @@ func main() {
 	apiKey := flag.String("api-key", "", "optional X-API-Key required on API routes")
 	flag.Parse()
 
+	metrics := api.NewMetrics()
 	handler := api.Handler{
-		Sender: engine.HTTPSender{URL: *receiverURL, APIKey: *apiKey, APIKeyName: "X-API-Key"},
-		APIKey: *apiKey,
+		Sender:  engine.HTTPSender{URL: *receiverURL, APIKey: *apiKey, APIKeyName: "X-API-Key"},
+		APIKey:  *apiKey,
+		Metrics: metrics,
 	}
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.HandlerFor(metrics.Registry, promhttp.HandlerOpts{}))
+	mux.Handle("/", handler)
 	log.Printf("API listening on %s", *listenAddr)
-	log.Fatal(http.ListenAndServe(*listenAddr, handler))
+	log.Fatal(http.ListenAndServe(*listenAddr, mux))
 }

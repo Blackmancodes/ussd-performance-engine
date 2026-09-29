@@ -8,7 +8,7 @@ services:
 
   engine:
     build: .
-    command: ["-role", "coordinator", "-config", "/config/docker.yaml", "-sessions", "1000000", "-worker-count", "2", "-metrics-addr", ":2112"]
+    command: ["-role", "coordinator", "-config", "/config/docker.yaml", "-sessions", "1000000", "-worker-count", "2", "-metrics-addr", ":2112", "-mock", "-mock-error-rate", "0.1"]
     ports:
       - "2112:2112"
     depends_on:
@@ -34,5 +34,12 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GRAFANA_ALERT_EMAIL: "${GRAFANA_ALERT_EMAIL:-alerts@example.com}"
+      GF_SMTP_ENABLED: "${GF_SMTP_ENABLED:-false}"
+      GF_SMTP_HOST: "${GF_SMTP_HOST:-}"
+      GF_SMTP_USER: "${GF_SMTP_USER:-}"
+      GF_SMTP_PASSWORD: "${GF_SMTP_PASSWORD:-}"
+      GF_SMTP_FROM_ADDRESS: "${GF_SMTP_FROM_ADDRESS:-alerts@example.com}"
+      GF_SMTP_FROM_NAME: "${GF_SMTP_FROM_NAME:-USSD Pulse Command Center}"
     depends_on:
       - prometheus

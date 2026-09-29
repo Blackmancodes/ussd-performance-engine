@@ -27,3 +27,28 @@ func TestRunnerEmitsPrometheusMetrics(t *testing.T) {
 		}
 	}
 }
+
+type failingSender struct{}
+
+func (failingSender) Send(context.Context, Request) (Response, error) {
+	return Response{}, context.DeadlineExceeded
+}
+
+func TestRunnerEmitsFailureEventMetrics(t *testing.T) {
+	metrics := NewMetrics()
+	runner := Runner{Config: testConfig(), Sender: failingSender{}, Metrics: metrics}
+	if _, err := runner.Run(context.Background(), 1); err == nil {
+		t.Fatal("Run() error = nil, want failure")
+	}
+	metricFamilies, err := metrics.Registry.Gather()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, family := range metricFamilies {
+		names = append(names, family.GetName())
+	}
+	if !strings.Contains(strings.Join(names, ","), "ussd_failure_events_total") {
+		t.Fatal("failure event metric was not emitted")
+	}
+}

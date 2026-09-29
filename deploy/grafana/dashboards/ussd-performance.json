@@ -10,69 +10,70 @@
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "reqps"}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 0, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 0, "y": 0},
       "id": 1,
-      "title": "Request Rate",
+      "title": "Live Request Rate",
       "type": "stat",
       "targets": [{"expr": "sum(rate(ussd_requests_total[$__rate_interval]))", "legendFormat": "requests/s", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 0.05}]}}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 4, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 3, "y": 0},
       "id": 2,
-      "title": "Error Rate",
+      "title": "Quality: Error Rate",
       "type": "stat",
-      "targets": [{"expr": "sum(ussd_requests_total{status=\"error\"}) / clamp_min(sum(ussd_requests_total), 1)", "legendFormat": "errors", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "targets": [{"expr": "(sum(ussd_requests_total{status=\"error\"}) or vector(0)) / clamp_min(sum(ussd_requests_total), 1)", "legendFormat": "errors", "refId": "A"}],
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "s", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "orange", "value": 2}, {"color": "red", "value": 3}]}}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 8, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 6, "y": 0},
       "id": 3,
-      "title": "P95 Request Latency",
+      "title": "Quality: P95 Latency",
       "type": "stat",
       "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(ussd_request_duration_seconds_bucket[$__rate_interval])))", "legendFormat": "p95", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "short"}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 12, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 9, "y": 0},
       "id": 4,
-      "title": "Completed Sessions",
+      "title": "Live: Completed Sessions",
       "type": "stat",
       "targets": [{"expr": "sum(ussd_sessions_total{state=\"COMPLETED\"})", "legendFormat": "completed", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "percentunit", "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "green", "value": 0.95}]}}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 16, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 12, "y": 0},
       "id": 10,
-      "title": "Success Rate",
+      "title": "Quality: Success Rate",
       "type": "stat",
       "targets": [{"expr": "sum(ussd_requests_total{status=\"complete\"}) / clamp_min(sum(ussd_requests_total), 1)", "legendFormat": "success", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "short", "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
-      "gridPos": {"h": 5, "w": 4, "x": 20, "y": 0},
+      "gridPos": {"h": 5, "w": 3, "x": 15, "y": 0},
       "id": 11,
-      "title": "Failed Sessions",
+      "title": "Investigate: Failed Sessions",
       "type": "stat",
-      "targets": [{"expr": "sum(ussd_sessions_total{state=\"FAILED\"})", "legendFormat": "failed", "refId": "A"}],
-      "options": {"colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+      "targets": [{"expr": "sum(ussd_sessions_total{state=\"FAILED\"}) or vector(0)", "legendFormat": "failed", "refId": "A"}],
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"},
+      "links": [{"title": "Open failure investigation", "url": "/d/ussd-performance/ussd-performance?viewPanel=14"}]
     },
     {
       "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "reqps"}, "overrides": []},
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 5},
       "id": 5,
-      "title": "Request Rate Over Time",
+      "title": "Traffic: Request Rate Over Time",
       "type": "timeseries",
       "targets": [{"expr": "sum by (status) (rate(ussd_requests_total[$__rate_interval]))", "legendFormat": "{{status}}", "refId": "A"}],
       "options": {"legend": {"displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"}}
@@ -82,7 +83,7 @@
       "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "s"}, "overrides": []},
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 5},
       "id": 6,
-      "title": "Latency Percentiles",
+      "title": "Quality: Latency Percentiles",
       "type": "timeseries",
       "targets": [
         {"expr": "histogram_quantile(0.50, sum by (le) (rate(ussd_request_duration_seconds_bucket[$__rate_interval])))", "legendFormat": "p50", "refId": "A"},
@@ -96,7 +97,7 @@
       "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "reqps"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 0, "y": 13},
       "id": 7,
-      "title": "Requests by Journey",
+      "title": "Traffic: Requests by Journey",
       "type": "timeseries",
       "targets": [{"expr": "sum by (journey) (rate(ussd_requests_total[$__rate_interval]))", "legendFormat": "{{journey}}", "refId": "A"}],
       "options": {"legend": {"displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"}}
@@ -106,7 +107,7 @@
       "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "reqps"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 8, "y": 13},
       "id": 8,
-      "title": "Requests by MNO",
+      "title": "Traffic: Requests by Network",
       "type": "timeseries",
       "targets": [{"expr": "sum by (network) (rate(ussd_requests_total[$__rate_interval]))", "legendFormat": "{{network}}", "refId": "A"}],
       "options": {"legend": {"displayMode": "table", "placement": "bottom"}, "tooltip": {"mode": "multi", "sort": "desc"}}
@@ -116,20 +117,59 @@
       "fieldConfig": {"defaults": {"color": {"mode": "palette-classic"}, "unit": "short"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 16, "y": 13},
       "id": 9,
-      "title": "Sessions by State",
+      "title": "Quality: Sessions by State",
       "type": "barchart",
       "targets": [{"expr": "sum by (state) (ussd_sessions_total)", "legendFormat": "{{state}}", "refId": "A"}],
       "options": {"orientation": "horizontal", "xTickLabelRotation": 0, "xTickLabelSpacing": 100, "legend": {"displayMode": "list", "placement": "bottom"}}
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false}}, "overrides": []},
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 21},
+      "id": 14,
+      "title": "Investigation: Failure Queue",
+      "description": "Select a ticket or MSISDN above to inspect failure reason and incident context.",
+      "type": "table",
+      "targets": [{"expr": "sum by (ticket, session_id, msisdn, network, journey, reason) (ussd_failure_events_total{ticket=~\"$failure_ticket\",msisdn=~\"$failure_msisdn\"})", "format": "table", "instant": true, "refId": "A"}],
+      "options": {"cellHeight": "sm", "footer": {"enablePagination": true, "show": true}, "showHeader": true, "sortBy": [{"displayName": "Value", "desc": true}]}
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "reqps"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 3, "x": 18, "y": 0},
+      "id": 15,
+      "title": "Collection Send Rate",
+      "description": "Each successful send corresponds to one completed collection iteration.",
+      "type": "stat",
+      "targets": [{"expr": "sum(rate(postman_requests_total{route=\"send\",status=\"success\"}[$__rate_interval]))", "legendFormat": "collection sends/s", "refId": "A"}],
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "unit": "short"}, "overrides": []},
+      "gridPos": {"h": 5, "w": 3, "x": 21, "y": 0},
+      "id": 16,
+      "title": "Collection Iterations",
+      "description": "Cumulative successful Send requests from the running collection loop.",
+      "type": "stat",
+      "targets": [{"expr": "sum(postman_requests_total{route=\"send\",status=\"success\"})", "legendFormat": "iterations", "refId": "A"}],
+      "options": {"colorMode": "background", "graphMode": "area", "justifyMode": "auto", "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "textMode": "auto"}
     }
   ],
   "refresh": "5s",
   "schemaVersion": 39,
   "tags": ["ussd", "performance", "load-test"],
-  "templating": {"list": []},
   "time": {"from": "now-15m", "to": "now"},
   "timepicker": {},
   "timezone": "browser",
-  "title": "USSD Performance Overview",
+  "templating": {
+    "list": [
+      {"name": "failure_ticket", "label": "Failure ticket", "type": "query", "datasource": {"type": "prometheus", "uid": "prometheus"}, "query": "label_values(ussd_failure_events_total, ticket)", "includeAll": true, "multi": true, "allValue": ".*", "refresh": 2, "sort": 1},
+      {"name": "failure_msisdn", "label": "Affected MSISDN", "type": "query", "datasource": {"type": "prometheus", "uid": "prometheus"}, "query": "label_values(ussd_failure_events_total, msisdn)", "includeAll": true, "multi": true, "allValue": ".*", "refresh": 2, "sort": 1}
+    ]
+  },
+  "description": "Live command center for USSD throughput, quality, session health, and failure investigation.",
+  "title": "USSD Pulse Command Center",
   "uid": "ussd-performance",
-  "version": 1
+  "version": 2
 }

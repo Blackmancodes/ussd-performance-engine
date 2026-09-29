@@ -112,6 +112,7 @@ func (r *Runner) Run(ctx context.Context, sessionNumber int) (SessionResult, err
 			if r.Metrics != nil {
 				r.Metrics.ObserveRequest(network, journey.Name, stage, "error", time.Since(started))
 				r.Metrics.ObserveSession(result.State, journey.Name)
+				r.Metrics.ObserveFailure(result, err)
 			}
 			return result, err
 		}
@@ -141,6 +142,7 @@ type Metrics struct {
 	Requests *prometheus.CounterVec
 	Latency  *prometheus.HistogramVec
 	Sessions *prometheus.CounterVec
+	Failures *prometheus.CounterVec
 	Registry *prometheus.Registry
 }
 
@@ -150,9 +152,10 @@ func NewMetrics() *Metrics {
 		Requests: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_requests_total", Help: "Total sender requests emitted by the engine."}, []string{"network", "journey", "stage", "status"}),
 		Latency:  prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "ussd_request_duration_seconds", Help: "Sender request duration in seconds.", Buckets: prometheus.DefBuckets}, []string{"network", "journey", "stage"}),
 		Sessions: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_sessions_total", Help: "Total sessions by terminal state and journey."}, []string{"state", "journey"}),
+		Failures: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_failure_events_total", Help: "Failure events with incident context for investigation."}, []string{"ticket", "session_id", "msisdn", "network", "journey", "reason"}),
 		Registry: registry,
 	}
-	registry.MustRegister(metrics.Requests, metrics.Latency, metrics.Sessions)
+	registry.MustRegister(metrics.Requests, metrics.Latency, metrics.Sessions, metrics.Failures)
 	return metrics
 }
 
@@ -163,6 +166,15 @@ func (m *Metrics) ObserveRequest(network, journey, stage, status string, duratio
 
 func (m *Metrics) ObserveSession(state, journey string) {
 	m.Sessions.WithLabelValues(state, journey).Inc()
+}
+
+func (m *Metrics) ObserveFailure(result SessionResult, failure error) {
+	reason := "unknown"
+	if failure != nil {
+		reason = failure.Error()
+	}
+	ticket := "USS" + result.SessionID
+	m.Failures.WithLabelValues(ticket, result.SessionID, result.MSISDN, result.Network, result.Journey, reason).Inc()
 }
 
 func pickJourney(journeys []config.Journey, sample float64) config.Journey {

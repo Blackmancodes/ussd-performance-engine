@@ -8,8 +8,9 @@ import (
 )
 
 type Handler struct {
-	Sender engine.Sender
-	APIKey string
+	Sender  engine.Sender
+	APIKey  string
+	Metrics *Metrics
 }
 
 func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
@@ -29,7 +30,7 @@ func (h Handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	case "/api/v1/send":
 		h.send(writer, request)
 	case "/api/v1/receive":
-		receive(writer, request)
+		h.receive(writer, request)
 	default:
 		writeJSON(writer, http.StatusNotFound, map[string]string{"error": "route not found"})
 	}
@@ -47,13 +48,19 @@ func (h Handler) send(writer http.ResponseWriter, request *http.Request) {
 	}
 	response, err := h.Sender.Send(request.Context(), payload)
 	if err != nil {
+		if h.Metrics != nil {
+			h.Metrics.Observe("send", "error")
+		}
 		writeJSON(writer, http.StatusBadGateway, map[string]string{"error": err.Error()})
 		return
+	}
+	if h.Metrics != nil {
+		h.Metrics.Observe("send", "success")
 	}
 	writeJSON(writer, http.StatusOK, response)
 }
 
-func receive(writer http.ResponseWriter, request *http.Request) {
+func (h Handler) receive(writer http.ResponseWriter, request *http.Request) {
 	var payload engine.Request
 	if err := json.NewDecoder(request.Body).Decode(&payload); err != nil {
 		writeJSON(writer, http.StatusBadRequest, map[string]string{"error": "invalid request JSON"})
@@ -62,6 +69,9 @@ func receive(writer http.ResponseWriter, request *http.Request) {
 	if payload.SessionID == "" {
 		writeJSON(writer, http.StatusBadRequest, map[string]string{"error": "sessionId is required"})
 		return
+	}
+	if h.Metrics != nil {
+		h.Metrics.Observe("receive", "success")
 	}
 	writeJSON(writer, http.StatusOK, engine.Response{SessionID: payload.SessionID, Response: "END OK", Continue: false})
 }
