@@ -17,3 +17,28 @@ jobs:
         run: go test ./... -count=1
       - name: Smoke run
         run: go run ./cmd/engine -config config/example.yaml -mock -sessions 5 -worker-count 1
+      - name: Start API for Postman checks
+        run: |
+          nohup go run ./cmd/api -listen-addr 127.0.0.1:8080 > /tmp/performance-engine-api.log 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/healthz; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/performance-engine-api.log
+          exit 1
+      - name: Run Postman API checks
+        run: npx --yes newman run postman/ci/performance-engine.postman_collection.json
+
+  postman-workspace-sync:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync collection to Postman workspace
+        env:
+          POSTMAN_API_KEY: ${{ secrets.POSTMAN_API_KEY }}
+          POSTMAN_COLLECTION_ID: ${{ secrets.POSTMAN_COLLECTION_ID }}
+        run: python scripts/sync-postman.py
+
