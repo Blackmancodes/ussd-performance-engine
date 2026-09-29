@@ -1,8 +1,7 @@
 import json
 import os
+import subprocess
 import sys
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 
@@ -18,19 +17,41 @@ collection_path = Path("postman/ci/performance-engine.postman_collection.json")
 with collection_path.open(encoding="utf-8") as collection_file:
     payload = json.load(collection_file)
 
-request = urllib.request.Request(
+body = json.dumps({"collection": payload}, separators=(",", ":"))
+command = [
+    "curl",
+    "--silent",
+    "--show-error",
+    "--fail-with-body",
+    "--max-time",
+    "30",
+    "--request",
+    "PUT",
     f"https://api.postman.com/collections/{collection_id}",
-    data=json.dumps({"collection": payload}, separators=(",", ":")).encode("utf-8"),
-    headers={"X-API-Key": api_key, "Content-Type": "application/json"},
-    method="PUT",
-)
-try:
-    with urllib.request.urlopen(request, timeout=30) as response:
-        result = json.load(response)
-except urllib.error.HTTPError as error:
-    detail = error.read().decode("utf-8", errors="replace")
-    sys.exit(f"Postman collection sync failed with HTTP {error.code}: {detail}")
+    "--header",
+    f"X-API-Key: {api_key}",
+    "--header",
+    "Content-Type: application/json",
+    "--header",
+    "Accept: application/json",
+    "--data-binary",
+    "@-",
+    "--write-out",
+    "\n%{http_code}",
+]
+response = subprocess.run(command, input=body, text=True, capture_output=True, check=False)
+response_body, _, status_code = response.stdout.rpartition("\n")
+if response.returncode != 0 or not status_code.startswith("2"):
+    detail = response_body or response.stderr.strip() or "No response body"
+    if "1010" in detail:
+        sys.exit(
+            "Postman collection sync was blocked by its Cloudflare security layer "
+            f"(HTTP {status_code or 'unknown'}, error 1010). The request used curl; "
+            "contact Postman Support with the Cloudflare Ray ID from the response."
+        )
+    sys.exit(f"Postman collection sync failed with HTTP {status_code or 'unknown'}: {detail}")
 
+result = json.loads(response_body)
 synced = result.get("collection", {})
 print(f"Synced Postman collection: {synced.get('name', payload['info']['name'])} ({synced.get('id', collection_id)})")
 
