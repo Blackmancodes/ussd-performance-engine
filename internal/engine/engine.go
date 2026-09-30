@@ -3,6 +3,7 @@ package engine
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"math/rand"
 	"net/http"
@@ -152,7 +153,7 @@ func NewMetrics() *Metrics {
 		Requests: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_requests_total", Help: "Total sender requests emitted by the engine."}, []string{"network", "journey", "stage", "status"}),
 		Latency:  prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "ussd_request_duration_seconds", Help: "Sender request duration in seconds.", Buckets: prometheus.DefBuckets}, []string{"network", "journey", "stage"}),
 		Sessions: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_sessions_total", Help: "Total sessions by terminal state and journey."}, []string{"state", "journey"}),
-		Failures: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_failure_events_total", Help: "Failure events with incident context for investigation."}, []string{"ticket", "session_id", "msisdn", "network", "journey", "reason"}),
+		Failures: prometheus.NewCounterVec(prometheus.CounterOpts{Name: "ussd_failure_events_total", Help: "Total session failures by bounded category."}, []string{"network", "journey", "failure_type"}),
 		Registry: registry,
 	}
 	registry.MustRegister(metrics.Requests, metrics.Latency, metrics.Sessions, metrics.Failures)
@@ -169,12 +170,16 @@ func (m *Metrics) ObserveSession(state, journey string) {
 }
 
 func (m *Metrics) ObserveFailure(result SessionResult, failure error) {
-	reason := "unknown"
-	if failure != nil {
-		reason = failure.Error()
+	failureType := "unknown"
+	switch {
+	case errors.Is(failure, context.DeadlineExceeded):
+		failureType = "timeout"
+	case errors.Is(failure, context.Canceled):
+		failureType = "canceled"
+	case failure != nil:
+		failureType = "sender_error"
 	}
-	ticket := "USS" + result.SessionID
-	m.Failures.WithLabelValues(ticket, result.SessionID, result.MSISDN, result.Network, result.Journey, reason).Inc()
+	m.Failures.WithLabelValues(result.Network, result.Journey, failureType).Inc()
 }
 
 func pickJourney(journeys []config.Journey, sample float64) config.Journey {

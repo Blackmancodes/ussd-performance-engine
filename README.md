@@ -39,6 +39,18 @@ Overview** dashboard. Useful initial queries are `ussd_requests_total` and
 
 ## Test the real HTTP API
 
+The API contract is documented in [`openapi.yaml`](openapi.yaml). The runnable
+Postman collection used by CI is `postman/ci/performance-engine.postman_collection.json`;
+it uses `base_url=http://127.0.0.1:8080`. The
+API key is only needed when the API is started with `-api-key`; keep its value
+in a local Postman environment or CI secret rather than committing it.
+
+The GitHub Actions workflow runs the collection with Newman against a local API
+instance. To sync that collection to an existing Postman workspace collection,
+add repository secrets `POSTMAN_API_KEY` and `POSTMAN_COLLECTION_ID`. Sync runs
+on pushes to `main`; it updates the configured collection in place. The
+collection ID identifies its workspace, so no separate workspace ID is needed.
+
 Start the API service locally:
 
 ```powershell

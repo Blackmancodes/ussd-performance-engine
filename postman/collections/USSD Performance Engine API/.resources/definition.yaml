@@ -1,0 +1,5 @@
+$kind: collection
+description: Smoke and contract checks for the Performance Engine HTTP API. The base_url variable defaults to http://localhost:8080.
+variables:
+  base_url: http://localhost:8080
+  api_key: ""

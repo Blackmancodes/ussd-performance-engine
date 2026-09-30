@@ -1,58 +1,9 @@
-# USSD Performance Engine — Presentation Outline
+# USSD Performance Engine — 7-Slide Outline
 
-## 1. Executive summary
-- Purpose: load-test a USSD gateway with realistic session traffic and measurable SLOs
-- Key value: deterministic, reproducible, observable, and scalable
-- Outcome: we can generate 1M+ request load safely and compare runs against a baseline
-
-## 2. Problem statement
-- USSD systems are bursty, session-driven, and sensitive to latency and outage windows
-- Existing load testing is usually ad hoc and not reproducible
-- Engineering teams need a repeatable way to test real-world session behavior
-
-## 3. Architecture
-- Coordinator/worker model for scale
-- Deterministic sharding of MSISDN and journeys
-- Prometheus + Grafana observability
-- Report service for post-run summarization
-
-## 4. Key technical decisions
-- YAML-driven config for journeys, MNO pools, thresholds, and behavior
-- Seeded randomness for reproducible session generation
-- Session-aware requests and response handling
-- Multi-stage runtime: local dev, Docker Compose, distributed workers, dashboards
-
-## 5. Metrics and observability
-- `ussd_requests_total`
-- `ussd_request_duration_seconds`
-- `ussd_sessions_total`
-- Grafana dashboards showing request rate, latency, journeys, MNOs, session outcomes
-
-## 6. Stage progress
-- Stage 1: single-node session engine
-- Stage 2: metrics and local stack
-- Stage 3: coordinator/worker distributed scaling
-- Stage 4: Grafana dashboard
-- Stage 5: report generation and baseline comparison
-- Stage 6: baseline regression detection
-- Stage 7: Kubernetes + CI future path
-
-## 7. Baseline and regression model
-- Capture current metrics snapshot as baseline
-- Compare future runs using deltas on request volume, failure rate, and latency
-- Flag worsening performance before it becomes an outage
-
-## 8. Business impact
-- Reduces performance risk before production changes
-- Gives engineering and leadership a single source of truth for test quality
-- Enables repeatable performance validation for USSD products and partners
-
-## 9. Next steps
-- Finalize real receiver contract
-- Add stronger SLO thresholds and alerting
-- Expand to Kubernetes and CI smoke profiles
-- Package standardized run reports and deck-ready summaries
-
-## 10. Closing slide
-- Reproducible performance testing for critical customer-facing USSD systems
-- Built for scale, observability, and operational confidence
+1. **Title and purpose** — Repeatable load testing and live monitoring for USSD services.
+2. **Problem** — Customer-critical USSD flows need performance checks that teams can repeat and compare.
+3. **How it works** — YAML configuration, seeded session generation, coordinator/worker execution, metrics, and reports.
+4. **Workload and scale** — Session lifecycle and network-aware traffic; current Compose profile is configured for 1,000,000 sessions across 2 workers with a mock receiver and 10% simulated errors. This is a workload setting, not a capacity claim.
+5. **Observability** — Prometheus metrics and Grafana dashboards/alerts for request rate, latency, and session outcomes.
+6. **Results and regression checks** — Reports summarize runs; stored baselines and threshold checks help identify changes. Postman/Newman cover the HTTP API.
+7. **Status and next steps** — Engine, API, monitoring, and reporting are available. Validate the production receiver contract, set SLO thresholds, and add CI performance smoke profiles.

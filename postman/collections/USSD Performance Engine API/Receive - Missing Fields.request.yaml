@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/receive"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: "{}"
+scripts:
+  - type: afterResponse
+    code: pm.test('rejects missing sessionId', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error).to.include('sessionId'); });
+    language: text/javascript
+order: 3000

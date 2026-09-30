@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/receive"
+method: POST
+headers:
+  Content-Type: application/json
+  X-API-Key: "{{api_key}}"
+body:
+  type: json
+  content: |-
+    {
+      "sessionId": "postman-demo-1",
+      "msisdn": "2348031000001",
+      "network": "MTN",
+      "ussdString": "*737#",
+      "input": "",
+      "stage": "begin"
+    }
+scripts:
+  - type: afterResponse
+    code: pm.test('returns terminal USSD response', function () { pm.response.to.have.status(200); const body = pm.response.json(); pm.expect(body.sessionId).to.eql('postman-demo-1'); pm.expect(body.response).to.eql('END OK'); pm.expect(body.continue).to.eql(false); });
+    language: text/javascript
+order: 2000

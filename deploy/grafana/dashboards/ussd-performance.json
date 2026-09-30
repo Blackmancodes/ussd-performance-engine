@@ -127,10 +127,10 @@
       "fieldConfig": {"defaults": {"custom": {"align": "auto", "cellOptions": {"type": "auto"}, "inspect": false}}, "overrides": []},
       "gridPos": {"h": 10, "w": 24, "x": 0, "y": 21},
       "id": 14,
-      "title": "Investigation: Failure Queue",
-      "description": "Select a ticket or MSISDN above to inspect failure reason and incident context.",
+      "title": "Failure Events by Category",
+      "description": "Failure counts grouped by network, journey, and bounded failure type.",
       "type": "table",
-      "targets": [{"expr": "sum by (ticket, session_id, msisdn, network, journey, reason) (ussd_failure_events_total{ticket=~\"$failure_ticket\",msisdn=~\"$failure_msisdn\"})", "format": "table", "instant": true, "refId": "A"}],
+      "targets": [{"expr": "sum by (network, journey, failure_type) (ussd_failure_events_total)", "format": "table", "instant": true, "refId": "A"}],
       "options": {"cellHeight": "sm", "footer": {"enablePagination": true, "show": true}, "showHeader": true, "sortBy": [{"displayName": "Value", "desc": true}]}
     },
     {
@@ -164,12 +164,10 @@
   "timezone": "browser",
   "templating": {
     "list": [
-      {"name": "failure_ticket", "label": "Failure ticket", "type": "query", "datasource": {"type": "prometheus", "uid": "prometheus"}, "query": "label_values(ussd_failure_events_total, ticket)", "includeAll": true, "multi": true, "allValue": ".*", "refresh": 2, "sort": 1},
-      {"name": "failure_msisdn", "label": "Affected MSISDN", "type": "query", "datasource": {"type": "prometheus", "uid": "prometheus"}, "query": "label_values(ussd_failure_events_total, msisdn)", "includeAll": true, "multi": true, "allValue": ".*", "refresh": 2, "sort": 1}
     ]
   },
   "description": "Live command center for USSD throughput, quality, session health, and failure investigation.",
   "title": "USSD Pulse Command Center",
   "uid": "ussd-performance",
-  "version": 2
+  "version": 3
 }

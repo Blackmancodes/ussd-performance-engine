@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{base_url}}/api/v1/receive"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: not-json
+scripts:
+  - type: afterResponse
+    code: pm.test('rejects invalid JSON', function () { pm.response.to.have.status(400); pm.expect(pm.response.json().error.toLowerCase()).to.include('invalid'); });
+    language: text/javascript
+order: 4000
